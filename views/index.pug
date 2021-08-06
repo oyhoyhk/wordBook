@@ -1,0 +1,294 @@
+doctype html 
+html(lang='en')
+    head
+        title Toeic Words 
+        link(rel="stylesheet" type="text/css" href="toeic_words.css")
+        script.
+            window.onload=()=>{
+                let list = splitArray(!{JSON.stringify(list)});
+                let diffList = splitArray(!{JSON.stringify(diff)});
+                let currentPage = list.length;
+                let currentDiffPage = diffList.length;
+                let status = 'default';
+                const SERVER = 'http://localhost:3000';
+    
+                createWordList(list[currentPage-1]);
+                createPagenation(list.length);
+
+                const inputEnglish = document.getElementById('inputEnglish');
+                const inputKorean = document.getElementById('inputKorean');
+                const submit = document.getElementById('submit');
+                const random = document.getElementById('random');
+                const visible = document.getElementById('visible');
+
+                inputEnglish.focus();
+
+                //어려운 단어 추가
+
+                const dragBox = document.getElementById('drag_box');
+                dragBox.addEventListener('dragenter',(e)=>{
+                    e.target.style.background='black';
+                    e.target.style.color='white';
+                });
+                dragBox.addEventListener('dragleave', (e) => {
+                    e.target.style.background='white';
+                    e.target.style.color='black';
+                })
+                dragBox.addEventListener('dragover', e=> {
+                    e.preventDefault();
+                })                
+                dragBox.addEventListener('drop', e =>{
+                    const data = e.dataTransfer.getData('text/plain').split('_');
+                    fetch(SERVER+'/diff_word',
+                        { 
+                            method : 'POST' , 
+                            headers: { 'Content-Type' : 'application/json' },
+                            body:JSON.stringify({[data[0]] : data[1]})
+                        })
+                        .then(res => res.json()).then( data => {
+                            if(data['word'] === 'existing'){
+                                alert('이미 등록 되어 있습니다!');
+                                return;
+                            }
+                            diffList=splitArray(data);
+                        })
+                    console.log(data);
+                    e.target.style.background='white';
+                    e.target.style.color='black';
+                })
+                //난이도 선택
+                const def = document.getElementById('default');
+                const diff = document.getElementById('difficult');
+
+                def.addEventListener('click', () => {
+                    if(status==='default') {
+                        return;
+                    }
+                    diff.classList.remove('course_now');
+                    def.classList.add('course_now');
+                    status = 'default';
+                    dragBox.style.display='flex';
+                    createWordList(list[list.length-1],'default');
+                    createPagenation(list.length);
+                })
+                diff.addEventListener('click',()=>{
+                    if(status==='difficult'){
+                        return;
+                    }
+                    def.classList.remove('course_now');
+                    diff.classList.add('course_now');
+                    status = 'difficult';
+                    dragBox.style.display='none'
+                    createWordList(diffList[diffList.length-1],'difficult');
+                    createPagenation(diffList.length);
+                })
+                //사전 검색 shift + enter
+                inputEnglish.addEventListener('keypress',(e)=>{
+                    if(e.shiftKey && e.code === 'Enter'){
+                        window.open(`https://m.search.naver.com/search.naver?query=${e.target.value}&where=m_ldic&sm=msv_hty`, "단어 검색"," left=0, top=0, width=560, height=580, scroll=no, toolbar=no, menubar=no, location=no, status=no"
+                        )
+                    }
+                    inputKorean.focus();
+                })
+
+                // 단어 등록
+                submit.addEventListener('click',()=>{
+                    submitWordInfo(makeWordInfo());
+                });
+                inputKorean.addEventListener('keypress',(e)=>{
+                    if(e.code==='Enter'){
+                        submitWordInfo(makeWordInfo());
+                    }
+                });
+
+                // 단어 섞기
+                random.addEventListener('click', () => {
+                    createWordList(randomize(list[currentPage-1]));
+                })
+
+                // 한글 가리기
+                visible.addEventListener('change',(e)=>{
+                    if(e.target.checked===true){
+                        document.querySelectorAll('.word_box').forEach(el=>{
+                            el.children[1].style.color='white'
+                            el.addEventListener('mouseenter',intoBlack);
+                            el.addEventListener('mouseleave',intoWhite);
+                        })
+                    }else{
+                        document.querySelectorAll('.word_box').forEach(el=>{
+                            el.children[1].style.color='black';
+                            el.removeEventListener('mouseenter',intoBlack);
+                            el.removeEventListener('mouseleave',intoWhite);
+                        })
+                    }
+                })
+
+                function intoBlack(event){
+                    event.target.children[1].style.color='black';
+                }
+                function intoWhite(event){
+                    event.target.children[1].style.color='white';
+                }
+                function makeWordInfo(){
+                    const eng = inputEnglish.value.trim();
+                    const kor = inputKorean.value.trim();
+                    if( eng && kor ){
+                        return { [eng] : kor};
+                    }
+                    return '';
+                }
+                function submitWordInfo(val, type='default'){
+                    if(!val){
+                        alert("단어를 입력해주세요!");
+                        return;
+                    }
+                    
+                    fetch(SERVER+'/enroll',{
+                        method:'POST',
+                        headers:{
+                            'Content-Type' : 'application/json'
+                        },
+                        body:JSON.stringify(val)
+                    })
+                        .then(res => {
+                            return res.json();
+                        }).then((data)=>{
+                            document.getElementById('inputEnglish').value='';
+                            document.getElementById('inputKorean').value='';
+                            document.getElementById('inputEnglish').focus();
+                            if(data['word']==='existing') {
+                                alert("이미 존재하는 단어 입니다!");
+                                return;
+                            }
+                            list = splitArray(data);
+                            createWordList(list[currentPage-1]);
+                            createPagenation(list.length);
+                            const num =document.getElementById('total_words_number');
+                            num.innerHTML= num.innerHTML*1 +1;
+                        });
+                }
+                function randomize(arr){
+                    const temp = [...arr];
+                    const result = [];
+                    while(temp.length!==0){
+                        const randomNum = Math.floor(Math.random()*temp.length);
+                        result.push(temp.splice(randomNum,1)[0]);
+                    }
+                    return result;
+                }
+                function createPagenation(length){
+                    
+                    const pagenation = document.getElementById('pagenation');
+                    pagenation.innerHTML='';
+                    if(length===1){
+                        return;
+                    }
+                    for(let i=1;i<=length;i++){
+                        const div = document.createElement('div');
+                        div.textContent=i;
+                        div.addEventListener('click', () => {
+                            createWordList(status==='default'?list[i-1] : diffList[i-1]);
+                            if(i!==currentPage){
+                                pagenation.children[currentPage-1].classList.remove('currentPage');
+                                div.classList.add('currentPage');
+                                if(status ==='default'){
+                                    currentPage=i;
+                                }else{
+                                    currentDiffPage=i;
+                                }
+                                visible.checked=false;
+                            }
+                        });
+                        if(i===currentPage){
+                            div.classList.add('currentPage');
+                        }
+                        pagenation.appendChild(div);
+                    }
+                }
+
+                function createWordList(wordslist, type='default'){
+                    const container = document.getElementById('word_list');
+                    container.innerHTML='';
+                    for(let i=0;i<wordslist.length;i++){
+                        const wordBox = document.createElement('div');
+                        wordBox.draggable=true;
+                        wordBox.classList.add('word_box');
+                        const englishWord = document.createElement('div');
+                        const koreanWord = document.createElement('div');
+                        englishWord.classList.add('english_word');
+                        englishWord.textContent=wordslist[i][0];
+                        koreanWord.classList.add('korean_word');
+                        koreanWord.textContent=wordslist[i][1];
+                        wordBox.addEventListener('dragstart',e=>{
+                            e.dataTransfer.setData('text/plain',wordslist[i][0]+'_'+wordslist[i][1]);
+                        })
+                        wordBox.addEventListener('dblclick',()=>{
+                            if(status === 'default'){
+                                fetch(SERVER+'/delete/'+wordslist[i][0],{
+                                    method:'DELETE',
+                                })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        list = splitArray(data);
+                                        createWordList(list[currentPage-1]);
+                                        createPagenation(list.length);
+                                        const num =document.getElementById('total_words_number');
+                                        num.innerHTML= num.innerHTML*1 -1;
+                                    });
+                            }else if(status === 'difficult'){
+                                fetch(SERVER+'/deleteDiff/'+wordslist[i][0],{ method : 'DELETE' })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        console.log(data);
+                                        diffList = splitArray(data);
+                                        createWordList(diffList[currentDiffPage-1]);
+                                        createPagenation(diffList.length);
+                                        const num = document.getElementById("difficult_words_number");
+                                        num.innerHTML=num.innerHTML*1 -1;
+                                    });
+                            }
+                        })
+                        wordBox.appendChild(englishWord);
+                        wordBox.appendChild(koreanWord);
+                        container.appendChild(wordBox);
+                    }
+                }
+                function splitArray(arr, innerWidth = 1500){
+                    let temp = [...arr];
+                    let res = [];
+                    while(temp.length !== 0){
+                        res.push(temp.splice(0,132));
+                    }
+                    return res
+                }
+            }
+
+    body 
+        h1 토익 영단어 도우미
+        #option_box
+            #input_word_box
+                input#inputEnglish(type="text" placeholder="English..." pattern="[A-Za-z0-9]*")
+                input#inputKorean(type="text" placeholder="Korean...")
+                button#submit 입력
+            .options
+                #course
+                    #default.course_now 기본
+                    #difficult 어려움
+                button#random 단어 섞기
+                label(for="visible") 한글가리기
+                    input#visible(name="visible" type="checkbox")
+        fieldset#word_list
+            legend 단어 리스트
+        fieldset#difficult_list
+            legend 어려운 단어
+        .pagenation_box
+            #drag_box(dropabble=true) 어려운단어...
+            #pagenation
+            #numbers 
+                | 총 단어 수 : 
+                span#total_words_number #{list.length} 
+                br
+                | 어려운 단어 :
+                span#difficult_words_number #{diff.length}
+
+                
