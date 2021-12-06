@@ -19,7 +19,7 @@ app.use(cors());
 app.get('/', (req, res) => {
 	return res.render('index', { list: jsonToArray(list), diff: jsonToArray(diff) });
 });
-
+ 
 app.post('/enroll', (req, res) => {
 	const key = Object.keys(req.body)[0];
 	const value = req.body[key];
