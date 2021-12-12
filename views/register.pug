@@ -1,0 +1,34 @@
+doctype html 
+html(lang="en")
+    head 
+        title Word Box
+        link(rel="stylesheet" type="text/css" href="/join.css")
+    body 
+        h1 Register
+            span(style="color:red")  #{msg}
+        form#join(action="/join" method="POST") 
+            input#id(type="text" name="id" maxLength="12" placeholder="ID... Max 12")
+            input#pw(type="password" name="pw" maxLength="15" placeholder="PASSWORD... Max 15")   
+            input#pwCheck(type="password" maxLength="15" placeholder="Check Password")
+            input#nickname(type="text" name="nickname" maxLength="10" placeholder="Nickname... Max 10")
+            button#submit(type="submit") Join
+    script.
+        const id= document.getElementById('id');
+        const pw= document.getElementById('pw');
+        const pwCheck = document.getElementById('pwCheck');
+        const nickname = document.getElementById('nickname');
+        const submit = document.getElementById('submit');
+
+        submit.addEventListener('click',e=>{
+            if(id.value==='' || pw.value==='' || pwCheck.value ==='' || nickname ==='') {
+                alert("Please Fill Register Form ")
+                e.preventDefault();
+                return;
+            }
+
+            if(pw.value !== pwCheck.value){
+                alert("Please Check your Password")
+                e.preventDefault();
+                return;
+            }
+        })

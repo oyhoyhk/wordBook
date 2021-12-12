@@ -1,0 +1,63 @@
+h1{
+    text-align:center;
+    margin-top:150px;
+}
+#login{
+    width:400px;
+    height:400px;
+    border:3px solid black;
+    border-radius:20px;
+    display:flex;
+    justify-content:space-around;
+    flex-direction:column;
+    align-items:center;
+    margin:50px auto;
+}
+#id{
+    margin-top:25px;
+}
+#msg {
+    color:red;
+}
+#login > input{
+    width:60%;
+    font-size:1.3rem;
+    padding-left:10px;
+    padding-bottom:10px;
+    outline:none;
+    border:none;
+    border-bottom:2px solid black;
+}
+#buttonBox{
+    width:80%;
+    height:60px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+#buttonBox > button{
+    font-size:1.2rem;
+    width:40%;
+    height:100%;
+    outline:none;
+    border:3px solid black;
+    background:none;
+    border-radius:20px;
+    cursor:pointer;
+}
+#register {
+    font-size:1.2rem;
+    width:40%;
+    height:100%;
+    outline:none;
+    border:3px solid black;
+    background:none;
+    border-radius:20px;
+    cursor:pointer;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-decoration:none;
+    color:black;
+}

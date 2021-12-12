@@ -7,11 +7,10 @@ html(lang='en')
             window.onload=()=>{
                 let list = splitArray(!{JSON.stringify(list)});
                 let diffList = splitArray(!{JSON.stringify(diff)});
-                let currentPage = list.length;
+                let currentPage = list.length || 1;
                 let currentDiffPage = diffList.length;
                 let status = 'default';
                 const SERVER = 'http://localhost:3000';
-    
                 createWordList(list[currentPage-1]);
                 createPagenation(list.length);
 
@@ -207,6 +206,7 @@ html(lang='en')
                 }
 
                 function createWordList(wordslist, type='default'){
+                    if(!wordslist) return;
                     const container = document.getElementById('word_list');
                     container.innerHTML='';
                     for(let i=0;i<wordslist.length;i++){
@@ -264,7 +264,7 @@ html(lang='en')
             }
 
     body 
-        h1 토익 영단어 도우미
+        h1 영단어 도우미
         #option_box
             #input_word_box
                 input#inputEnglish(type="text" placeholder="English..." pattern="[A-Za-z0-9]*")

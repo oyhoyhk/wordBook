@@ -1,0 +1,16 @@
+doctype html 
+html(lang="en")
+    head 
+        title Word Box
+        link(rel="stylesheet" type="text/css" href="member.css")
+    body 
+        h1 WordBox
+        form#login(action="/login" method="POST")
+            input#id(name="id" type="text" placeholder="ID..." maxLength="12")
+            input#pw(name="pw" type="password" placeholder="PASSWORD..." maxLength="15")
+            #msg #{msg}
+            #buttonBox
+                button(type="submit") Sign In
+                a#register(href="/register") Register
+    script.
+            
